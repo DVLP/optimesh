@@ -1091,11 +1091,17 @@ export default () => {
       );
       if (faceIdHasVertexId(fid, uId, dataArrayViews.facesView)) {
         // UVsAroundVertex.push(getUVsOnVertexId(fid, vId, dataArrayViews));
-        getFromAttributeObj(
+        // getFromAttributeObj(
+        //   dataArrayViews.facesUVsView,
+        //   fid,
+        //   vertexIndexOnFace,
+        //   2,
+        //   v2Tmp
+        // );
+        getFromAttributeTwoObj(
           dataArrayViews.facesUVsView,
           fid,
           vertexIndexOnFace,
-          2,
           v2Tmp
         );
         bufferArrayPush(UVsAroundVertex, v2Tmp.x, v2Tmp.y);
@@ -1120,11 +1126,17 @@ export default () => {
         fid2 = getFaceIdByVertexAndIndex(uId, i, dataArrayViews);
       }
       if (faceIdHasVertexId(fid2, vId, dataArrayViews.facesView)) {
-        getFromAttributeObj(
+        // getFromAttributeObj(
+        //   dataArrayViews.facesUVsView,
+        //   fid2,
+        //   vertexIndexOnFace,
+        //   2,
+        //   v2Tmp
+        // );
+        getFromAttributeTwoObj(
           dataArrayViews.facesUVsView,
           fid2,
           vertexIndexOnFace,
-          2,
           v2Tmp
         );
         bufferArrayPush(UVsAroundVertex, v2Tmp.x, v2Tmp.y);
@@ -1142,18 +1154,30 @@ export default () => {
     let boneCost = 0
     let cost = 0
 
-    getFromAttribute(
+    // getFromAttribute(
+    //   dataArrayViews.skinIndex,
+    //   faceId,
+    //   vertIndexOnFace,
+    //   4,
+    //   tempSkinIndex
+    // );
+    // getFromAttribute(
+    //   dataArrayViews.skinWeight,
+    //   faceId,
+    //   vertIndexOnFace,
+    //   4,
+    //   tempSkinWeight
+    // );
+    getFromAttributeFour(
       dataArrayViews.skinIndex,
       faceId,
       vertIndexOnFace,
-      4,
       tempSkinIndex
     );
-    getFromAttribute(
+    getFromAttributeFour(
       dataArrayViews.skinWeight,
       faceId,
       vertIndexOnFace,
-      4,
       tempSkinWeight
     );
     for (let i = 0; i < 4; i++) {
@@ -1295,21 +1319,33 @@ export default () => {
         );
         if (preserveTexture) {
           // get uvs on remaining vertex
-          getFromAttribute(
+          // getFromAttribute(
+          //   dataArrayViews.facesUVsView,
+          //   faceId,
+          //   vertIndexOnFace2,
+          //   2,
+          //   UVs
+          // );
+          getFromAttributeTwo(
             dataArrayViews.facesUVsView,
             faceId,
             vertIndexOnFace2,
-            2,
             UVs
           );
         }
 
         // do not interpolate just move to V2
-        getFromAttributeObj(
+        // getFromAttributeObj(
+        //   dataArrayViews.faceNormalsView,
+        //   faceId,
+        //   vertIndexOnFace2,
+        //   3,
+        //   moveToThisNormalValues
+        // )
+        getFromAttributeThreeObj(
           dataArrayViews.faceNormalsView,
           faceId,
           vertIndexOnFace2,
-          3,
           moveToThisNormalValues
         )
         // moveToThisNormalValues
@@ -1333,18 +1369,30 @@ export default () => {
         //     0.5
         //   );
 
-        getFromAttribute(
+        // getFromAttribute(
+        //   dataArrayViews.skinIndex,
+        //   faceId,
+        //   vertIndexOnFace2,
+        //   4,
+        //   moveToSkinIndex
+        // );
+        // getFromAttribute(
+        //   dataArrayViews.skinWeight,
+        //   faceId,
+        //   vertIndexOnFace2,
+        //   4,
+        //   moveToSkinWeight
+        // );
+        getFromAttributeFour(
           dataArrayViews.skinIndex,
           faceId,
           vertIndexOnFace2,
-          4,
           moveToSkinIndex
         );
-        getFromAttribute(
+        getFromAttributeFour(
           dataArrayViews.skinWeight,
           faceId,
           vertIndexOnFace2,
-          4,
           moveToSkinWeight
         );
 
@@ -1467,29 +1515,91 @@ export default () => {
     ] = value;
   }
 
-  function getFromAttribute(
+  // Do not use. Looks nice but this is a very hot place and the overhead of function calls is huge
+  // function getFromAttribute(
+  //   attribute,
+  //   faceId,
+  //   vertexIndexOnFace,
+  //   itemSize,
+  //   target
+  // ) {
+  //   for (var i = 0; i < itemSize; i++) {
+  //     target[i] =
+  //       attribute[faceId * 3 * itemSize + vertexIndexOnFace * itemSize + i];
+  //   }
+  // }
+
+  function getFromAttributeTwo(
     attribute,
     faceId,
     vertexIndexOnFace,
-    itemSize,
     target
   ) {
-    for (var i = 0; i < itemSize; i++) {
-      target[i] =
-        attribute[faceId * 3 * itemSize + vertexIndexOnFace * itemSize + i];
-    }
+    var offset = faceId * 3 * 2 + vertexIndexOnFace * 2
+    target[0] = attribute[offset];
+    target[1] = attribute[offset + 1];
   }
 
-  const tempArr = new Float32Array(4);
-  function getFromAttributeObj(
+  function getFromAttributeThree(
     attribute,
     faceId,
     vertexIndexOnFace,
-    itemSize,
     target
   ) {
-    getFromAttribute(attribute, faceId, vertexIndexOnFace, itemSize, tempArr);
-    return target.fromArray(tempArr);
+    var offset = faceId * 3 * 3 + vertexIndexOnFace * 3
+    target[0] = attribute[offset];
+    target[1] = attribute[offset + 1];
+    target[2] = attribute[offset + 2];
+  }
+
+  /** @inline */
+  function getFromAttributeFour(
+    attribute,
+    faceId,
+    vertexIndexOnFace,
+    target
+  ) {
+    var offset = faceId * 3 * 4 + vertexIndexOnFace * 4
+    target[0] = attribute[offset];
+    target[1] = attribute[offset + 1];
+    target[2] = attribute[offset + 2];
+    target[3] = attribute[offset + 3];
+  }
+
+  // looks nice but this is a very hot place and the overhead of function calls is huge
+  // const tempArr = new Float32Array(4);
+  // function getFromAttributeObj(
+  //   attribute,
+  //   faceId,
+  //   vertexIndexOnFace,
+  //   itemSize,
+  //   target
+  // ) {
+  //   getFromAttribute(attribute, faceId, vertexIndexOnFace, itemSize, tempArr);
+  //   return target.fromArray(tempArr);
+  // }
+
+  function getFromAttributeTwoObj(
+    attribute,
+    faceId,
+    vertexIndexOnFace,
+    target
+  ) {
+    var offset = faceId * 3 * 2 + vertexIndexOnFace * 2
+    target.x = attribute[offset];
+    target.y = attribute[offset + 1];
+  }
+
+  function getFromAttributeThreeObj(
+    attribute,
+    faceId,
+    vertexIndexOnFace,
+    target
+  ) {
+    var offset = faceId * 3 * 3 + vertexIndexOnFace * 3
+    target.x = attribute[offset];
+    target.y = attribute[offset + 1];
+    target.z = attribute[offset + 2];
   }
 
   function getUVsOnVertexId(faceId, vertexId, dataArrayViews, target) {

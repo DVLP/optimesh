@@ -27,7 +27,7 @@
     "extends": "mdcs"
   },
   "peerDependencies": {
-    "dvlp-three": "https://github.com/DVLP/three.js/tarball/optim-rebase-may"
+    "dvlp-three": "file:../dvlp-three"
   },
   "dependencies": {
     "dat.gui": "^0.7.7"
