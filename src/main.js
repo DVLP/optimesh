@@ -1,5 +1,5 @@
 import { meshSimplifier, createWorkers } from './MeshSimplifier';
-import { openOptimizer, setBoneCosts } from './OptimPopup';
+// import { openOptimizer, setBoneCosts } from './OptimPopup';
 import { skinnedMeshClone } from './skinnedMeshClone';
 
 function editorAction(editor) {
@@ -12,7 +12,7 @@ function editorAction(editor) {
 
   const selected = editor.selected;
 
-  openOptimizer(selected.isSkinnedMesh ? skinnedMeshClone(selected) : selected.clone(), onDone);
+  // openOptimizer(selected.isSkinnedMesh ? skinnedMeshClone(selected) : selected.clone(), onDone);
 
   function onDone(optimizedMesh) {
     optimizedMesh.position.copy(selected.position);
@@ -40,9 +40,10 @@ const OptiMesh = {
   createWorkers,
   meshSimplifier,
   editorPlugin,
-  openOptimizer,
-  setBoneCosts,
+  // openOptimizer,
+  // setBoneCosts,
 };
 
 export default { OptiMesh };
-export { createWorkers, meshSimplifier, editorPlugin, openOptimizer, setBoneCosts };
+export { createWorkers, meshSimplifier };
+// export { createWorkers, meshSimplifier };

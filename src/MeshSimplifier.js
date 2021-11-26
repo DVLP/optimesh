@@ -1,10 +1,10 @@
 import { emptyOversizedContainer, emptyOversizedContainerIndex, zeroFill } from './BufferArrayManager';
 import * as CostWorker from './Worker/simplify.worker.js';
 import { getIndexedPositions } from './Utils';
-// import { Vector2, Vector3, BufferAttribute, BufferGeometry } from 'dvlp-three';
-const {
-  Vector2, Vector3, BufferAttribute, BufferGeometry
-} = dvlpThree;
+import { Vector2, Vector3, BufferAttribute, BufferGeometry } from 'dvlp-three';
+// const {
+//   Vector2, Vector3, BufferAttribute, BufferGeometry
+// } = dvlpThree;
 export class WebWorker {
   constructor(worker) {
     const blob = new Blob(['(' + worker.toString() + ')()'], {
@@ -34,7 +34,8 @@ let reqId = 0;
 // TODO: wtf is happening with multithreaded optimiser
 let totalAvailableWorkers = 1; // Math.min(5, navigator.hardwareConcurrency);
 // if SAB is not available use only 1 worker per object to fully contain dataArrays that will be only available after using transferable objects
-const MAX_WORKERS_PER_OBJECT = typeof SharedArrayBuffer === 'undefined' ? 1 : navigator.hardwareConcurrency;
+const isSAB = typeof SharedArrayBuffer !== 'undefined'
+const MAX_WORKERS_PER_OBJECT = !isSAB ? 1 : navigator.hardwareConcurrency;
 const DISCARD_BELOW_VERTEX_COUNT = 400;
 
 const preloadedWorkers = [];
@@ -94,9 +95,9 @@ export function meshSimplifier(
     if (discardSimpleGeometry(geometry)) {
       return resolve(geometry);
     }
-    if (geometry.index) {
-      geometry = geometry.toNonIndexed();
-    }
+    // if (geometry.index) {
+    //   geometry = geometry.toNonIndexed();
+    // }
 
     preserveTexture =
       preserveTexture && geometry.attributes.uv && geometry.attributes.uv.count;
@@ -200,12 +201,13 @@ function createDataArrays(verexCount, faceCount, workersAmount) {
     // zeroFill(reusingDataArrays.costMinView);
     // zeroFill(reusingDataArrays.neighbourCollapse);
     // zeroFill(reusingDataArrays.faceMaterialIndexView);
-    reusingDataArrays.vertexWorkStatus.fill(0);
-    reusingDataArrays.buildIndexStatus.fill(0);
-
-    reusingDataArrays.vertexNeighboursView.fill(0);
-    reusingDataArrays.vertexFacesView.fill(0);
-    reusingDataArrays.boneCosts.fill(0);
+    if (isSAB) {
+      reusingDataArrays.vertexWorkStatus.fill(0);
+      reusingDataArrays.buildIndexStatus.fill(0);
+      reusingDataArrays.vertexNeighboursView.fill(0);
+      reusingDataArrays.vertexFacesView.fill(0);
+      reusingDataArrays.boneCosts.fill(0);
+    }    
     console.timeEnd('reusing arrays')
     return reusingDataArrays;
   }
@@ -333,11 +335,16 @@ function loadBufferGeometry(dataArrays, geometry) {
   } = dataArrays;
 
   if (geometry.skeleton) {
-    Object.keys(geometry.boneCosts).forEach(boneName => {
-      const idx = geometry.skeleton.bones.findIndex(bone => bone.name === boneName)
-      if (!idx) return
-      boneCosts[idx] = geometry.boneCosts[boneName]
-    })
+    if (!geometry.boneCosts) {
+      console.error('Optimesh: Bone costs are missing!')
+
+    } else {
+      Object.keys(geometry.boneCosts).forEach(boneName => {
+        const idx = geometry.skeleton.bones.findIndex(bone => bone.name === boneName)
+        if (!idx) return
+        boneCosts[idx] = geometry.boneCosts[boneName]
+      })
+    }
   }
   // console.log('new indexed addresses', newVertexIndexByOld);
 
@@ -633,8 +640,8 @@ function sendWorkToWorkers(
 
 function reindex(index) {
   const uniqueVertices = [];
-  const mapNewToOld = [];
-  const mapOldToNew = [];
+  let mapNewToOld = new Uint32Array(index.length); // this is broken?
+  const mapOldToNew = []; 
   let newIndexCount = 0;
   // find unique indices
   for (let i = 0; i < index.length / 3; i++) {
@@ -649,7 +656,9 @@ function reindex(index) {
     newIndexCount++;
   }
 
-  mapNewToOld.sort();
+  mapNewToOld = mapNewToOld.slice(0, uniqueVertices.length) // is length inclusive?
+
+  mapNewToOld.sort(); // must be typed array for sort!
   for (let i = 0; i < mapNewToOld.length; i++) {
     mapOldToNew[mapNewToOld[i]] = i;
   }
