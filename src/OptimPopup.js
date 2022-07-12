@@ -3,8 +3,9 @@ import * as dat from 'dat.gui';
 import { skinnedMeshClone } from './skinnedMeshClone';
 
 // NO NEED TO IMPORT dvlpThree - it's added by rollup so it works with both THREE and dvlpThreee
-const { AmbientLight, Box3, Color, Group, HemisphereLight, PerspectiveCamera, Scene, SpotLight, WebGLRenderer, OrbitControls } = dvlpThree
-// import { OrbitControls } from 'dvlp-three/examples/jsm/controls/OrbitControls.js';
+// const { AmbientLight, Box3, Color, Group, HemisphereLight, PerspectiveCamera, Scene, SpotLight, WebGLRenderer, OrbitControls } = dvlpThree
+const { AmbientLight, Box3, Color, Group, HemisphereLight, PerspectiveCamera, Scene, SpotLight, WebGLRenderer } = 'dvlp-three'
+import { OrbitControls } from 'dvlp-three/examples/jsm/controls/OrbitControls.js';
 
 var camera, ocontrols, modelGroup, modelOptimized, modelOptimizedGroup, modelMaxSize, modelMaxWidthDepth, fileLoader, close, done;
 var boneCosts = {}

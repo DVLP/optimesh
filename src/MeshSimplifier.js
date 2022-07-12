@@ -1,6 +1,7 @@
 import { emptyOversizedContainer, emptyOversizedContainerIndex, zeroFill } from './BufferArrayManager';
 import * as CostWorker from './Worker/simplify.worker.js';
 import { getIndexedPositions } from './Utils';
+// const { Vector2, Vector3, BufferAttribute, BufferGeometry } = dvlpThree
 import { Vector2, Vector3, BufferAttribute, BufferGeometry } from 'dvlp-three';
 // const {
 //   Vector2, Vector3, BufferAttribute, BufferGeometry
