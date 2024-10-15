@@ -145,32 +145,32 @@ export function meshSimplifier(
         })
         .catch(e => {
           return reject(geometry);
-          if (attempt >= 3) {
-            console.log('Simplifying error messages', e);
-            console.error(
-              'Error in simplifying. Returning original.',
-              geometry.name
-            );
-            return (resolveTop || resolve)(geometry);
-          }
-          console.log('Simplifying error messages', e);
-          console.error(
-            'Error in simplifying. Retrying in 500ms, attempt',
-            attempt,
-            geometry.name
-          );
-          const attemptCount = attempt + 1;
-          setTimeout(() => {
-            meshSimplifier(
-              geometry,
-              percentage,
-              maximumCost,
-              modelSize,
-              (preserveTexture = true),
-              attemptCount,
-              resolveTop || resolve
-            );
-          }, 500);
+          // if (attempt >= 3) {
+          //   console.log('Simplifying error messages', e);
+          //   console.error(
+          //     'Error in simplifying. Returning original.',
+          //     geometry.name
+          //   );
+          //   return (resolveTop || resolve)(geometry);
+          // }
+          // console.log('Simplifying error messages', e);
+          // console.error(
+          //   'Error in simplifying. Retrying in 500ms, attempt',
+          //   attempt,
+          //   geometry.name
+          // );
+          // const attemptCount = attempt + 1;
+          // setTimeout(() => {
+          //   meshSimplifier(
+          //     geometry,
+          //     percentage,
+          //     maximumCost,
+          //     modelSize,
+          //     (preserveTexture = true),
+          //     attemptCount,
+          //     resolveTop || resolve
+          //   );
+          // }, 500);
         });
     });
   });
