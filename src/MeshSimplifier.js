@@ -184,7 +184,6 @@ function createDataArrays(verexCount, faceCount, workersAmount) {
     reusingDataArrays !== null &&
     verexCount <= previousVertexCount
   ) {
-    console.time('reusing arrays')
     emptyOversizedContainerIndex(reusingDataArrays.facesView);
     emptyOversizedContainer(reusingDataArrays.specialCases);
     emptyOversizedContainerIndex(reusingDataArrays.specialCasesIndex);
@@ -202,20 +201,16 @@ function createDataArrays(verexCount, faceCount, workersAmount) {
     // zeroFill(reusingDataArrays.costMinView);
     // zeroFill(reusingDataArrays.neighbourCollapse);
     // zeroFill(reusingDataArrays.faceMaterialIndexView);
-    if (isSAB) {
-      reusingDataArrays.vertexWorkStatus.fill(0);
-      reusingDataArrays.buildIndexStatus.fill(0);
-      reusingDataArrays.vertexNeighboursView.fill(0);
-      reusingDataArrays.vertexFacesView.fill(0);
-      reusingDataArrays.boneCosts.fill(0);
-    }    
-    console.timeEnd('reusing arrays')
+    reusingDataArrays.vertexWorkStatus.fill(0);
+    reusingDataArrays.buildIndexStatus.fill(0);
+    reusingDataArrays.vertexNeighboursView.fill(0);
+    reusingDataArrays.vertexFacesView.fill(0);
+    reusingDataArrays.boneCosts.fill(0);
     return reusingDataArrays;
   }
 
   previousVertexCount = verexCount;
-  const SAB =
-    typeof SharedArrayBuffer === 'undefined' ? ArrayBuffer : SharedArrayBuffer;
+  const SAB = isSAB ? SharedArrayBuffer : ArrayBuffer
   // const positions = geo.attributes.position.array;
   const verticesAB = new SAB(verexCount * 3 * 4);
   const facesAB = new SAB(faceCount * 3 * 4); // REMOVED additional * 3 because something is fucked and i don't want to mess up other 'depending on faceCount'
@@ -303,9 +298,7 @@ function loadGeometryToDataArrays(geometry, workersAmount) {
     );
     loadGeometry(dataArrays, geometry);
   } else if (geometry.isBufferGeometry) {
-    const positionsCount = geometry.index
-      ? geometry.attributes.position.count
-      : geometry.attributes.position.count;
+    const positionsCount = geometry.attributes.position.count;
     const faceCount = geometry.index
       ? geometry.index.count / 3
       : geometry.attributes.position.count / 3;
@@ -361,6 +354,11 @@ function loadBufferGeometry(dataArrays, geometry) {
     faceNormalView[i * 3] = faceNormal.x;
     faceNormalView[i * 3 + 1] = faceNormal.y;
     faceNormalView[i * 3 + 2] = faceNormal.z;
+  }
+
+  // position and index are indexed, but other attributes are not
+  if (geometry.index) {
+    geometry = geometry.toNonIndexed()
   }
 
   if (geometry.attributes.normal) {
@@ -554,7 +552,7 @@ function sendWorkToWorkers(
         throw new Error('the worker should be reserved now');
       }
       let ifNoSABUseTransferable = undefined;
-      if (typeof SharedArrayBuffer === 'undefined') {
+      if (!isSAB) {
         ifNoSABUseTransferable = Object.keys(dataArrays).reduce((acc, el) => {
           acc.push(dataArrays[el].buffer);
           return acc;
@@ -618,6 +616,16 @@ function sendWorkToWorkers(
 
       doneCount++;
 
+      if (!isSAB) {
+        if (event.data.dataArrays) {
+          Object.keys(reusingDataArrays).forEach(el => {
+            reusingDataArrays[el] = event.data.dataArrays[el];
+          });
+        } else {
+          reusingDataArrays = null
+        }
+      }
+
       if (event.data.task === 'simplificationError') {
         errorMessages.push(event.data.message);
         aborting = true;
@@ -625,7 +633,7 @@ function sendWorkToWorkers(
         event.data.task === 'edgesCostsDone' &&
         doneCount >= workers.length
       ) {
-        if (typeof SharedArrayBuffer === 'undefined') {
+        if (!isSAB) {
           resolve(event.data.dataArrays);
         } else {
           resolve(dataArrays);
@@ -819,7 +827,7 @@ function createNewBufferGeometry(
   let currentMaterial = null;
   count = 0;
 
-  const index = new Uint32Array(faceCount * 4);
+  const index = new Uint32Array(faceCount * 3);
 
   let currentGroup = null;
 

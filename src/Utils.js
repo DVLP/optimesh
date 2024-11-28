@@ -31,10 +31,13 @@ export const getIndexedPositions = (function() {
 
   return function buildIndexedPositions(geometry, precision) {
     var SAB = typeof SharedArrayBuffer !== 'undefined' ? SharedArrayBuffer : ArrayBuffer;
+    const faceCount = geometry.index ? geometry.index.count / 3 : geometry.attributes.position.count / 3;
+    const largeIndexes = faceCount * 3 > 65536;
+    const UIntConstructor = largeIndexes ? Uint32Array : Uint16Array;
 
     if(geometry.index) {
-      const indexSAB = new SAB(geometry.index.array.length * 4);
-      const indexArr = new Uint32Array(indexSAB);
+      const indexSAB = new SAB(geometry.index.array.length * (largeIndexes ? 4 : 2));
+      const indexArr = new UIntConstructor(indexSAB);
       indexArr.set(geometry.index.array);
       const posSAB = new SAB(geometry.attributes.position.array.length * 4);
       const posArr = new Float32Array(posSAB);
@@ -47,16 +50,10 @@ export const getIndexedPositions = (function() {
     prec = Math.pow(10, precision || 4);
 
     const positionsAttr = [];
-
     const position = geometry.attributes.position.array;
-
-    const faceCount = position.length / 3 / 3;
-
-    const largeIndexes = faceCount * 3 > 65536;
     const indexBuffer = new SAB(
       faceCount * 3 * (largeIndexes ? 4 : 2)
     );
-    const UIntConstructor = largeIndexes ? Uint32Array : Uint16Array;
     const indexArray = new UIntConstructor(indexBuffer);
 
     for (let i = 0, l = faceCount; i < l; i++) {
