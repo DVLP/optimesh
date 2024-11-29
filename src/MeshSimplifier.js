@@ -1,11 +1,7 @@
-import { emptyOversizedContainer, emptyOversizedContainerIndex, zeroFill } from './BufferArrayManager';
+import { emptyOversizedContainer, emptyOversizedContainerIndex, zeroFill } from './BufferArrayManager.js';
 import * as CostWorker from './Worker/simplify.worker.js';
-import { getIndexedPositions } from './Utils';
-// const { Vector2, Vector3, BufferAttribute, BufferGeometry } = dvlpThree
-import { Vector2, Vector3, BufferAttribute, BufferGeometry } from 'dvlp-three';
-// const {
-//   Vector2, Vector3, BufferAttribute, BufferGeometry
-// } = dvlpThree;
+import { getIndexedPositions } from './Utils.js';
+import { Vector2, Vector3, BufferAttribute, BufferGeometry } from './threeImport.js';
 export class WebWorker {
   constructor(worker) {
     const blob = new Blob(['(' + worker.toString() + ')()'], {

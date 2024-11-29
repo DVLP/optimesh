@@ -4,10 +4,11 @@
   "description": "OptiMesh reduces meshes resolution to optimize performance, memory usage and download size",
   "cdn": "https://cdn.jsdelivr.net/npm/optimesh@1.0.32/build/main.js",
   "main": "build/main.js",
-  "jsnext:main": "build/main.module.js",
-  "module": "build/main.module.js",
+  "jsnext:main": "src/main.js",
+  "module": "src/main.js",
   "scripts": {
-    "build": "rollup -c",
+    "start": "npx http-server . -o -c-1",
+    "build": "cp ./src/threeImport.globalThree.js ./src/threeImport.js && rollup -c",
     "test": "jest src",
     "lint": "eslint src",
     "prepublishOnly": "(git diff-index --quiet HEAD -- || (echo \"There are uncommitted changes\"; && exit;)) && node --experimental-modules publish.mjs",
@@ -19,6 +20,7 @@
     "@babel/core": "^7.11.6",
     "@babel/plugin-transform-modules-commonjs": "^7.10.4",
     "@babel/preset-env": "^7.11.5",
+    "http-server": "^14.1.1",
     "rollup": "^1.32.1",
     "rollup-plugin-commonjs": "^10.1.0",
     "rollup-plugin-node-resolve": "^5.2.0"

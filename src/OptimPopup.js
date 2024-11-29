@@ -1,11 +1,7 @@
-import { meshSimplifier, killWorkers, createWorkers } from './MeshSimplifier';
-import * as dat from 'dat.gui';
-import { skinnedMeshClone } from './skinnedMeshClone';
-
-// NO NEED TO IMPORT dvlpThree - it's added by rollup so it works with both THREE and dvlpThreee
-// const { AmbientLight, Box3, Color, Group, HemisphereLight, PerspectiveCamera, Scene, SpotLight, WebGLRenderer, OrbitControls } = dvlpThree
-const { AmbientLight, Box3, Color, Group, HemisphereLight, PerspectiveCamera, Scene, SpotLight, WebGLRenderer } = 'dvlp-three'
-import { OrbitControls } from 'dvlp-three/examples/jsm/controls/OrbitControls.js';
+import { meshSimplifier, killWorkers, createWorkers } from './MeshSimplifier.js';
+import * as dat from './lib/dat.gui.min.js'
+import { skinnedMeshClone } from './skinnedMeshClone.js';
+import { AmbientLight, Box3, Color, Group, HemisphereLight, PerspectiveCamera, Scene, SpotLight, WebGLRenderer, Loader, OrbitControls } from './threeImport.js'
 
 var camera, ocontrols, modelGroup, modelOptimized, modelOptimizedGroup, modelMaxSize, modelMaxWidthDepth, fileLoader, close, done;
 var boneCosts = {}
@@ -114,7 +110,7 @@ function setupGUI(webglContainer, models) {
   const dropdown = gui.add(controls, 'state').options(Object.keys(models));
 
   dropdown.onChange(item => {
-    fileLoader.loadURL(models[item]);
+    fileLoader.load(models[item]);
   });
   // setTimeout(() => {
   //   dropdown.setValue(Object.keys(models)[1]);
@@ -257,7 +253,7 @@ function toWireframe(obj, wireframeMode) {
   obj.children.forEach(el => toWireframe(el, wireframeMode));
 }
 
-// fileLoader = new Loader(obj => setupNewObject(obj));
+fileLoader = new Loader(obj => setupNewObject(obj));
 
 function setupNewObject(scene, obj, controls, domElement) {
   scene.remove(modelGroup);
@@ -299,12 +295,8 @@ function setupNewObject(scene, obj, controls, domElement) {
     Math.abs(modelMaxSize * 3)
   );
 
-  if (OrbitControls) {
-    ocontrols = new OrbitControls(camera, domElement);
-    ocontrols.target.set(modelMaxWidthDepth / 2, (boxScale.max.y - boxScale.min.y) / 2, 0);
-  } else {
-    console.warn('Update this code to work with THREE 117+');
-  }
+  ocontrols = new OrbitControls(camera, domElement);
+  ocontrols.target.set(modelMaxWidthDepth / 2, (boxScale.max.y - boxScale.min.y) / 2, 0);
 
   optimizeModel(controls);
 
